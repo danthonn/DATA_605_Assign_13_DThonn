@@ -1,0 +1,255 @@
+---
+title: "DATA_605_Assign_13_DThonn"
+file: DATA_605_Assign_13_DThonn
+name: Daniel Thonn
+output:
+  html_document: default
+  pdf_document: default
+course: DATA 605 CUNY MSDA program
+---
+
+** DATA_605_Assignment 13 - Calculus 1 -Testbuilder **
+
+http://rpubs.com/danthonn/384416
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+``````{r, echo=TRUE}
+if (!require(Deriv)) install.packages("Deriv")
+library(Deriv)
+
+if (!require(stats)) install.packages("stats")
+library(stats)
+
+if (!require(rootSolve)) install.packages("rootSolve")
+library(rootSolve)
+
+Sys.setenv(JAVA_HOME = "C:/Program Files/Java/jre1.8.0_171")
+
+if (!require(rJava)) install.packages("rJava")
+library(rJava)
+
+if (!require(rSymPy)) install.packages("rSymPy")
+library(rSymPy)
+
+```
+
+
+
+** Question-1 **
+
+1). Provide a scatterplot of LifeExp~TotExp, and run simple linear regression. Do not transform the variables. Provide and interpret the F statistics, R^2, standard error,and p-values only. Discuss whether the assumptions of simple linear regression met.
+
+
+$$\int 4e^{-7x} \, dx$$
+
+
+``````{r, echo=TRUE}
+
+x <- Var("x")
+
+sympy("integrate(4 * exp(-7 * x))")
+
+## [1] "-4*exp(-7*x)/7"
+
+
+
+
+```
+
+2). Biologists are treating a pond contaminated with bacteria. The level of contamination is changing at a rate of
+dN/dt = -3500/t^4 -??? 220 bacteria per cubic centimeter per day, where t is the number of days since treatment began. Find a function N( t ) to estimate the level of contamination if the level after 1 day was 6530 bacteria per cubic centimeter.
+
+
+``````{r, echo=TRUE}
+
+# rate of change function
+f1 <- function(t) -3150 * t^-4 - 220
+
+# integrate f1 to get int_f1
+# int_f1 = 1050 * t^-3 - 220 * t + C
+
+# Find C
+# Plug in output
+# int_f1 = 6530 = 1050 * t^-3 - 220 * t + C
+
+# Solve for C
+t <- 1
+(C <- 6530 - 1050 * t^-3 + 220 * t)
+
+#C:
+# [1] 5700
+
+# int_f1
+(int_f1 <- function(t) 1050 * t^-3 - 220 * t + 5700)
+
+# Answer: Function to estimate the level of contamination
+# function(t) 1050 * t^-3 - 220 * t + 5700
+
+```
+
+3). Find the total area of the red rectangles in the figure below, where the 3. equation of the line is f ( x ) = 2x  9.
+
+
+
+``````{r, echo=TRUE}
+
+# Create a function to represent the equation of the line
+f1 <- function(x)( 2 * x - 9)
+
+# left side = 4.5
+left <- 4.5
+# [1] 4.5
+(right <- left + 4)
+# [1] 8.5
+
+
+# Find the total area
+# integrate the function f1 from the left limit to the right limit of the rectangles
+stats::integrate(Vectorize(f1), left, right)
+## 16 with absolute error < 1.8e-13
+
+
+
+```
+
+4). Find the area of the region bounded by the graphs of the given equations.
+
+1). y = x2 - 2x - ,
+
+2). y = x + 2
+
+``````{r, echo=TRUE}
+
+# y1 =x^2 −2x −2 
+# y2 =x + 2 
+
+# prepare the two equation functions
+f1 <- function(x) x^2 - 2 * x - 2
+f2 <- function(x) x + 2
+
+# prepare an input data set to for input to the two functions
+data <- seq(-2, 5, by = 0.01)
+
+# run the two functions on the data
+f1_data <- f1(data)
+f2_data <- f2(data)
+
+# plot the data - notice the two intersection points
+plot(data, f1_data, type = "l", col = "blue")
+lines(data, f2_data, col = "red", type = "l")
+abline(0, 0)
+
+# now, locate the intersections
+is_equal <- f2_data == f1_data
+df1 <- data.frame(cbind(data, is_equal))
+intersection_points <- subset(df1, is_equal == 1)
+str(intersection_points)
+
+# roots and key poihnts
+roots <- uniroot.all(f1, c(-2, 5))
+low1 <- roots[1]
+up1 <- roots[2]
+low2 <- intersection_points$data[1]
+up2 <- intersection_points$data[2]
+
+# Answer-5
+(integrate(Vectorize(f2), low2, up2)$value - integrate(Vectorize(f1), 
+    low2, up2)$value)
+# [1] 20.83333
+
+
+```
+
+
+5). A beauty supply store expects to sell 110 flat irons during the next year. It costs $3.75 to store one flat iron for one year.  There is a fixed cost of $8.25 for each order. Find the lot size and the number of orders per year that will minimize inventory costs.
+
+``````{r, echo=TRUE}
+
+# sales_num = 110 / yearly_orders
+
+# cost = sales_quant * 3.75 + yearly_orders * 8.25
+
+total_amount <- function(yearly_orders) 110/yearly_orders * 3.75 + 8.25 * 
+    yearly_orders
+(total_amount.int <- Deriv(total_amount))
+
+# the function (yearly_orders) 
+# 8.25 - 412.5/yearly_orders^2
+
+(root <- uniroot.all(total_amount.int, c(1, 110)))
+# [1] 7.071079
+
+# Answers;
+yearly_orders <- floor(root)
+yearly_orders
+# [1] 7
+
+units_per_order <- ceiling(110/yearly_orders)
+units_per_order
+# [1] 16
+
+total_units_sold <- yearly_orders * units_per_order
+total_units_sold
+# [1] 112
+
+min_cost <- units_per_order * 3.75 + 8.25 * yearly_orders
+min_cost
+# [1] 117.75
+
+
+```
+
+
+6). Use integration by parts to solve the integral below.
+
+$$\int ln(9x)*x^6  \, dx$$
+
+``````{r, echo=TRUE}
+
+
+x <- Var("x")
+
+# integrate the equation using sympy
+sympy("integrate(log( 9 * x ) * x**6)")
+
+#Answer-6:
+# [1] "x**7*log(9)/7 + x**7*log(x)/7 - x**7/49"
+
+
+
+
+```
+
+
+7). Determine whether f (x) is a probability density function on the interval 1, e6 . If not, determine the value of the
+definite integral.
+
+f (x) = 1/6x
+
+``````{r, echo=TRUE}
+
+f1 <- function(x) 1/(6 * x)
+low <- 1
+up <- exp(6)
+
+all.equal(1, integrate(Vectorize(f1), low, up)$value, tolerance = 10^-6)
+
+# Answer-7: f(x) is probability density function
+# [1] TRUE
+
+```
+
+
+
+
+** END **
+
+
+``````{r, echo=TRUE}
+
+```
+
+
